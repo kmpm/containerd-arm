@@ -1,4 +1,6 @@
 VERSION?=$(shell git -C containerd/ describe --tags --dirty)
+VOLUME_NAME?=containerd-data
+IMAGE_NAME=containerd/build
 
 .PHONY: usage
 usage:
@@ -16,19 +18,43 @@ update:
 
 .PHONY: builder
 builder:
-	docker build -t containerd/build ./builder
+	docker build -t ${IMAGE_NAME} ./builder
 
 
-.PHONY: build
-build:
+.PHONY: volume
+volume: 
+	docker volume create ${VOLUME_NAME}
+
+
+.PHONY: asset
+asset:
 	docker run -it --rm \
-    -v ${PWD}:/workspace \
+    -v ${VOLUME_NAME}:/workspace \
     -e GOPATH=/go \
-    -w /workspace/containerd containerd/build make
+    -w /workspace \
+	${IMAGE_NAME} make
+
 
 .PHONY: shell
 shell:
 	docker run -it --rm \
-    -v ${PWD}:/workspace \
+    -v ${VOLUME_NAME}:/workspace \
     -e GOPATH=/go \
-    -w /workspace/containerd containerd/build bash
+    -w /workspace \
+	${IMAGE_NAME} bash
+
+
+.PHONY: files
+files:
+	docker create -ti --name dummy \
+	-v ${VOLUME_NAME}:/workspace \
+	${IMAGE_NAME} bash
+	docker cp dummy:/workspace/assets/. .
+	docker rm -f dummy
+
+
+.PHONY: clean
+clean:
+	docker rm -f dummy
+	docker volume rm ${VOLUME_NAME}
+	docker image rm containerd/build:latest
