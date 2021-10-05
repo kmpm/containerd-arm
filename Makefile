@@ -19,11 +19,11 @@ builder:
 	docker build -t containerd/build ./builder
 
 
-.PHONY: containerd
-containerd:
-	docker run -it \
-    -v ${PWD}/containerd:/go/src/github.com/containerd/containerd \
+.PHONY: build
+build:
+	docker run -it -rm \
+    -v ${PWD}:/workspace \
     -e GOPATH=/go \
-    -w /go/src/github.com/containerd/containerd containerd/build
+    -w /workspace/containerd containerd/build make
 
 
