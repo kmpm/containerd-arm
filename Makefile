@@ -21,9 +21,14 @@ builder:
 
 .PHONY: build
 build:
-	docker run -it -rm \
+	docker run -it --rm \
     -v ${PWD}:/workspace \
     -e GOPATH=/go \
     -w /workspace/containerd containerd/build make
 
-
+.PHONY: shell
+shell:
+	docker run -it --rm \
+    -v ${PWD}:/workspace \
+    -e GOPATH=/go \
+    -w /workspace/containerd containerd/build bash
